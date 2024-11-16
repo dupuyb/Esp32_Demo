@@ -1,0 +1,79 @@
+<!-- const char HTTP_DEMO[] PROGMEM = -->
+<!DOCTYPE html>
+<html>
+<style>
+  .l12 {
+    text-align: right;
+    width: 10em;
+    display: inline-block;
+  }
+  .c12 {
+    text-align: center;
+    width: 10em;
+    display: inline-block;
+  }
+  .r12 {
+    text-align: left;
+    width: 15em;
+    display: inline-block;
+  }
+  .myButton {
+    font-weight: bold;
+    text-align: center;
+  }
+  .myButton:hover {
+    background: linear-gradient(to bottom, #60ec03 5%, #a7c61f 100%);
+    background-color: #60ff05;
+  }
+  .myButton:active {
+    position: relative;
+    top: 1px;
+  }
+</style>
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>%%TITLE%%</title>
+</head>
+
+<body>
+  <center>
+    <h3>AD-ELENA Dot Configurations</h3>
+    <div style=' width: 40em; display: inline-block; text-align: left; padding:20px 5px; '>
+      <fieldset>
+        <legend> Open specific page : </legend>
+        <ul>
+          <li>Current date %%DATE%% .</li>
+          <li>WebSocket page <a href='/websocket.html'> open here </a> for a direct control.</li>
+          <li>Specialist tool <a href='/'> open here </a> for upload or download files.</li>
+        </ul> 
+      </fieldset>
+    </div>
+    
+    <div style=' width: 40em; display: block; text-align: left; '>
+        <fieldset>
+        <legend> Action : </legend>
+        Dot Display:
+        <button><a href="/demo?Cmd=open" class="myButton">Switch ON</a> </button> 
+        <button><a href="/demo?Cmd=close" class="myButton">Switch OFF</a> </button> 
+        <button><a href="/demo?Cmd=reset" class="myButton">Reset</a> </button> 
+        </fieldset>
+      
+       <!-- Add command Open CLose Reset-->
+    </div>
+    <div style=' width: 40em; display: block; text-align: left; '>
+      <fieldset>
+        <legend> ESP32 Parameters : </legend>
+        <ul>
+          <li>Software versiobn : <b>%%VL%%</b></li>
+          <li>Last Reboot date  : <b>%%RB%%</b></li>
+          <li>Network Host Name : <b>%%HOS%%</b></li>
+          <li>Mac adress        : <b>%%MAC%%</b></li>
+          <li>IP adresss        : <b>%%IP%%</b></li>
+          <li>Memory Total/Used : <b>%%MFREE%%</b> Kbytes</li>
+        </ul>
+      </fieldset>
+    </div>
+  </center>
+</body>
+</html>
