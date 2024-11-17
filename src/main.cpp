@@ -3,10 +3,16 @@
 #include "FrameWeb.h"
 FrameWeb frame;
 
+#include <WebSocketsServer.h>
 #include <HTTPClient.h>
 #include <time.h>
 // Reset Reason 
 #include <rom/rtc.h>
+
+#define USED_HTML1
+#ifdef USED_HTML
+#include "demo.h"
+#endif
 
 const char VERSION[] ="0.0.1";
 // Debug macro 
@@ -62,10 +68,12 @@ long previousMillis = 0;
 // Frame option
 void saveConfigCallback() {}
 
+// -------------------- WebSockwt functions see Data/websocket.html/js ------------------------
+
 // Json Variable to Hold Sensor Readings
 void webSocketSend(uint8_t num, String val) {
   String jsonString;
-  DynamicJsonDocument readings(150);
+  JsonDocument readings;
   readings["back"] = String(val);
   serializeJson(readings, jsonString);
   frame.webSocket.sendTXT(num, jsonString);
@@ -73,20 +81,41 @@ void webSocketSend(uint8_t num, String val) {
 
 // Receved value from Browser
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
-    // Serial.printf("%s -webSocketEvent. num:%d type:%d length:%d \n\r", getDate().c_str(), num, type, length);
     #ifdef DEBUG_MAIN
       String str = "null";
       if (length>0)
         str = String(payload, length);
       Serial.printf("type:%d payload:%s\n\r", type, str.c_str());
     #endif
-    if (type!=3) return; // WS_EVT_DATA only
-    DynamicJsonDocument rootcfg(150);
-    deserializeJson(rootcfg, payload, length);
-    String ret = rootcfg["value"];
-    webSocketSend(num, ret);
+    switch (type) {
+      case WStype_CONNECTED:
+#ifdef DEBUG_MAIN
+        Serial.printf("WebSocket client connected num=%d\n", num);
+#endif
+        webSocketSend(num, "0"); // Default value at startup
+        break;
+      case WStype_DISCONNECTED:
+#ifdef DEBUG_MAIN
+        Serial.printf("WebSocket client disconnected num:%d\n", num);
+#endif        
+        break;
+      case WStype_TEXT:
+        {
+          JsonDocument rootcfg;
+          deserializeJson(rootcfg, payload, length);
+          String ret = rootcfg["value"]; // Extract value
+          webSocketSend(num, ret);
+        }
+        break;
+      default:
+        return;
+        break;
+    }
 }
 
+// -------- Web transformation into Get Set functions ------------- 
+
+#ifdef USED_HTML
 // Actions
 void actionOpen() {
   Serial.printf("%s -Action OPEN.\n\r", getDate().c_str());
@@ -100,11 +129,9 @@ void actionReset() {
 void actionSetTotal(uint64_t val) {
   Serial.printf("%s -Action SET total at %llu \n\r", getDate().c_str(), val);
  }
+ #endif
 
-// -------- Web transformation into Get Set functions ------------- 
-#include "demo.h"
-
-// WatchDog
+// -------- WatchDog ----------------------------
 uint32_t wdCounter = 0;
 void watchdog(void *pvParameter) {
   while (1) {
@@ -147,12 +174,16 @@ void setup() {
   frame.setup();
 
   // Append /demo access html 
+#ifdef USED_HTML
   frame.server.on("/demo", [](){
     frame.server.send(HTTP_CODE_OK, "text/html", sentHtmlDemo());
   });
-
   // append info into tools html page
   frame.externalHtmlTools="Specific home page is visible at :<a class='button' href='/demo'>Demo Page</a>";
+#else
+  // append info into tools html page
+  frame.externalHtmlTools="Specific home page is visible at :<a class='button' href='/websocket.html'>Web Socket Demo</a>";
+#endif
 
   // Init time / Summer time 3600=Summer 0=Winter
   configTime(gmtOffset_sec, gmtOffset_sec, ntpServer); //init and get the time
@@ -227,7 +258,6 @@ void loop() {
     // every day. minute 
     boolean newMinute = ( (timeinfo.tm_sec == 00));
     // ....
-
  
   } // End second
 
